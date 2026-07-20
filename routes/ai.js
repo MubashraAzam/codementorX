@@ -94,8 +94,8 @@ router.post("/voice", protect, async (req, res) => {
 router.post("/review-project", protect, async (req, res) => {
   const { code, fileName, language, projectTitle } = req.body;
   try {
-    const prompt = `Review this ${language} code for project "${projectTitle}" (${fileName}):\n\n${code}\n\nReturn ONLY JSON: {"stars": 0-3, "feedback": "2-3 sentences"}. 3=excellent, 2=good/passing, 0-1=needs work.`;
-    const text = await askGemini(prompt);
+    const prompt = `Review this ${language} code for project "${projectTitle}" (${fileName}):\n\n${code}\n\nReturn ONLY valid JSON with exactly two keys: "stars" (integer 0-3) and "feedback" (string, 2-3 sentences). 3=excellent, 2=good/passing, 0-1=needs work. Do not return any other text or markdown.`;
+    const text = await askGroq(prompt);
     res.json(JSON.parse(text.replace(/```json|```/g, "").trim()));
   } catch (error) { res.status(500).json({ message: "AI error", error: error.message }); }
 });

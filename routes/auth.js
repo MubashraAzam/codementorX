@@ -54,11 +54,22 @@ router.get("/me", protect, async (req, res) => res.json(req.user));
 router.put("/profile", protect, async (req, res) => {
   try {
     const user = await User.findById(req.user._id);
-    const { firstName, lastName, email, dob, contact, newPassword, language } = req.body;
+    const { firstName, lastName, email, username, dob, contact, newPassword, language } = req.body;
+
+    if (username && username !== user.username) {
+      const existingUser = await User.findOne({ username });
+      if (existingUser) return res.status(400).json({ message: "Username is already taken" });
+      user.username = username;
+    }
+
+    if (email && email !== user.email) {
+      const existingEmail = await User.findOne({ email });
+      if (existingEmail) return res.status(400).json({ message: "Email is already in use" });
+      user.email = email;
+    }
 
     if (firstName) user.firstName = firstName;
     if (lastName)  user.lastName  = lastName;
-    if (email)     user.email     = email;
     if (dob)       user.dob       = dob;
     if (contact)   user.contact   = contact;
     if (language)  user.language  = language;

@@ -27,7 +27,10 @@ router.put("/:language/level", protect, async (req, res) => {
     if (!progress) progress = new Progress({ userId: req.user._id, language: req.params.language });
 
     if (!progress.doneLevels.includes(levelIndex)) progress.doneLevels.push(levelIndex);
-    progress.stars.set(String(levelIndex), stars);
+    const prevStars = progress.stars.get(String(levelIndex)) || 0;
+    if (stars > prevStars) {
+      progress.stars.set(String(levelIndex), stars);
+    }
     progress.currentLevel = Math.min(Math.max(progress.currentLevel, levelIndex + 1), 19);
     progress.updatedAt = Date.now();
     await progress.save();
@@ -63,6 +66,15 @@ router.put("/:language/interview", protect, async (req, res) => {
     await progress.save();
 
     res.json({ interview: progress.interview });
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+router.delete("/:language", protect, async (req, res) => {
+  try {
+    await Progress.findOneAndDelete({ userId: req.user._id, language: req.params.language });
+    res.json({ message: "Progress reset successfully" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
