@@ -53,30 +53,60 @@ router.get("/me", protect, async (req, res) => res.json(req.user));
 
 router.put("/profile", protect, async (req, res) => {
   try {
+    // findById (unlike req.user) includes the password hash, needed to verify a password change
     const user = await User.findById(req.user._id);
-    const { firstName, lastName, email, username, dob, contact, newPassword, language } = req.body;
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const {
+      firstName, lastName, email, username, dob, contact,
+      avatarUrl, currentPassword, newPassword, language,
+    } = req.body;
 
     if (username && username !== user.username) {
-      const existingUser = await User.findOne({ username });
+      const trimmed = username.trim();
+      if (trimmed.length < 3) return res.status(400).json({ message: "Username must be at least 3 characters" });
+      const existingUser = await User.findOne({ username: trimmed });
       if (existingUser) return res.status(400).json({ message: "Username is already taken" });
-      user.username = username;
+      user.username = trimmed;
     }
 
     if (email && email !== user.email) {
-      const existingEmail = await User.findOne({ email });
+      const normalized = email.toLowerCase().trim();
+      const existingEmail = await User.findOne({ email: normalized });
       if (existingEmail) return res.status(400).json({ message: "Email is already in use" });
-      user.email = email;
+      user.email = normalized;
     }
 
-    if (firstName) user.firstName = firstName;
-    if (lastName)  user.lastName  = lastName;
-    if (dob)       user.dob       = dob;
-    if (contact)   user.contact   = contact;
+    // Optional profile fields — checked against undefined so they can be cleared to ""
+    if (firstName !== undefined) user.firstName = firstName;
+    if (lastName  !== undefined) user.lastName  = lastName;
+    if (dob       !== undefined) user.dob       = dob;
+    if (contact   !== undefined) user.contact   = contact;
+    if (avatarUrl !== undefined) user.avatarUrl = avatarUrl;
     if (language)  user.language  = language;
-    if (newPassword) user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+
+    if (newPassword) {
+      if (!currentPassword) return res.status(400).json({ message: "Current password is required to set a new password" });
+      const match = await bcrypt.compare(currentPassword, user.password);
+      if (!match) return res.status(400).json({ message: "Current password is incorrect" });
+      if (newPassword.length < 8) return res.status(400).json({ message: "New password must be at least 8 characters" });
+      user.password = await bcrypt.hash(newPassword, await bcrypt.genSalt(10));
+    }
 
     const updated = await user.save();
-    res.json({ _id: updated._id, username: updated.username, email: updated.email, language: updated.language, token: generateToken(updated._id) });
+    res.json({
+      _id: updated._id,
+      username: updated.username,
+      email: updated.email,
+      firstName: updated.firstName,
+      lastName: updated.lastName,
+      dob: updated.dob,
+      contact: updated.contact,
+      avatarUrl: updated.avatarUrl,
+      language: updated.language,
+      createdAt: updated.createdAt,
+      token: generateToken(updated._id),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

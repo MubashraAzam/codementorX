@@ -62,7 +62,7 @@ router.put("/:language/interview", protect, async (req, res) => {
     let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
     if (!progress) progress = new Progress({ userId: req.user._id, language: req.params.language });
 
-    progress.interview = { percentage, feedback, passed: percentage >= 85 };
+    progress.interview = { percentage, feedback, passed: percentage >= 75 };
     await progress.save();
 
     res.json({ interview: progress.interview });

@@ -14,7 +14,7 @@ router.post("/:language/issue", protect, async (req, res) => {
 
     if (progress.doneLevels.length < 20) return res.status(400).json({ message: "Complete all 20 levels first" });
     if (solvedCount < 5) return res.status(400).json({ message: "Solve at least 5 projects first" });
-    if (!progress.interview.passed) return res.status(400).json({ message: "Pass the interview first (85%+)" });
+    if (!progress.interview.passed) return res.status(400).json({ message: "Pass the interview first (75%+)" });
 
     let cert = await Certificate.findOne({ userId: req.user._id, language: req.params.language });
     if (!cert) {

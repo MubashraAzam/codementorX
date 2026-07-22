@@ -71,7 +71,7 @@ router.post("/webhook", async (req, res) => {
     progress.interview = {
       percentage: result.percentage,
       feedback: result.feedback,
-      passed: result.percentage >= 85,
+      passed: result.percentage >= 75,
     };
     await progress.save();
 
