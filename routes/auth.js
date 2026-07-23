@@ -24,7 +24,19 @@ router.post("/register", [
     const hashed = await bcrypt.hash(password, await bcrypt.genSalt(10));
     const user = await User.create({ username, email, password: hashed });
 
-    res.status(201).json({ _id: user._id, username: user.username, email: user.email, token: generateToken(user._id) });
+    res.status(201).json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      dob: user.dob,
+      contact: user.contact,
+      avatarUrl: user.avatarUrl,
+      language: user.language,
+      createdAt: user.createdAt,
+      token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }
@@ -43,7 +55,19 @@ router.post("/login", [
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res.status(401).json({ message: "Invalid username or password" });
     }
-    res.json({ _id: user._id, username: user.username, email: user.email, language: user.language, token: generateToken(user._id) });
+    res.json({
+      _id: user._id,
+      username: user.username,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      dob: user.dob,
+      contact: user.contact,
+      avatarUrl: user.avatarUrl,
+      language: user.language,
+      createdAt: user.createdAt,
+      token: generateToken(user._id),
+    });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });
   }

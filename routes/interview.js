@@ -68,12 +68,16 @@ router.post("/webhook", async (req, res) => {
     let progress = await Progress.findOne({ userId, language });
     if (!progress) progress = new Progress({ userId, language });
 
-    progress.interview = {
-      percentage: result.percentage,
-      feedback: result.feedback,
-      passed: result.percentage >= 75,
-    };
-    await progress.save();
+    // A passed interview is final — never let a later run downgrade it. This
+    // keeps the certificate claimable even if a completed run is graded again.
+    if (!progress.interview?.passed) {
+      progress.interview = {
+        percentage: result.percentage,
+        feedback: result.feedback,
+        passed: result.percentage >= 75,
+      };
+      await progress.save();
+    }
 
     run.status = "completed";
     await run.save();
