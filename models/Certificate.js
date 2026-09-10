@@ -9,11 +9,13 @@ const certificateSchema = new mongoose.Schema({
   certificateNumber: { type: String, unique: true },
 });
 
-certificateSchema.pre("save", function (next) {
+// Mongoose 9 removed the `next` callback from middleware — hooks are now
+// synchronous or promise-based. Calling next() here threw "next is not a
+// function" and made every Certificate.create() fail with a 500.
+certificateSchema.pre("save", function () {
   if (!this.certificateNumber) {
     this.certificateNumber = `CMX-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
   }
-  next();
 });
 
 module.exports = mongoose.model("Certificate", certificateSchema);
