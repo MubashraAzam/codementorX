@@ -1,5 +1,6 @@
 const express = require("express");
 const Progress = require("../models/Progress");
+const Certificate = require("../models/Certificate");
 const { protect } = require("../middleware/authMiddleware");
 
 const router = express.Router();
@@ -8,12 +9,14 @@ router.get("/:language", protect, async (req, res) => {
   try {
     let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
     if (!progress) progress = await Progress.create({ userId: req.user._id, language: req.params.language });
+    const cert = await Certificate.findOne({ userId: req.user._id, language: req.params.language });
     res.json({
       doneLevels: progress.doneLevels,
       stars: Object.fromEntries(progress.stars),
       currentLevel: progress.currentLevel,
       solvedProjects: Object.fromEntries(progress.solvedProjects),
       interview: progress.interview,
+      certificate: cert || null,
     });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

@@ -15,6 +15,15 @@ router.get("/start/:language", protect, async (req, res) => {
   const userName = req.user.firstName || req.user.username || "Student";
   const agentId = language === "python" ? process.env.DOGRAH_PYTHON_AGENT_ID : process.env.DOGRAH_CPP_AGENT_ID;
 
+  const progress = await Progress.findOne({ userId: req.user._id, language });
+  if (progress?.interview?.passed) {
+    return res.status(400).json({
+      message: "Interview already passed! You can claim your certificate.",
+      passed: true,
+      percentage: progress.interview.percentage,
+    });
+  }
+
   res.json({ agentId, language, userName });
 });
 
