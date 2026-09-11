@@ -11,7 +11,12 @@ console.log("MONGO_URI =", process.env.MONGO_URI);
 connectDB();
 
 const app = express();
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+const allowedOrigins = (process.env.CLIENT_URL || "")
+  .split(",")
+  .map((o) => o.trim().replace(/\/$/, ""))
+  .filter(Boolean)
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json({ limit: "2mb" }));
 
 app.use("/api/auth",        require("./routes/auth"));
