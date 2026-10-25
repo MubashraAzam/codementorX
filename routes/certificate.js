@@ -1,20 +1,24 @@
 const express = require("express");
 const Progress = require("../models/Progress");
 const Certificate = require("../models/Certificate");
-const { protect } = require("../middleware/authMiddleware");
+const { protect, requireEnrollment } = require("../middleware/authMiddleware");
+const { validateLanguage } = require("../middleware/validateLanguage");
+const { certificateBlockers, solvedProjectCount } = require("../utils/progressRules");
 
 const router = express.Router();
 
-router.post("/:language/issue", protect, async (req, res) => {
+router.post("/:language/issue", protect, validateLanguage, requireEnrollment(), async (req, res) => {
   try {
     const progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
     if (!progress) return res.status(400).json({ message: "No progress found" });
 
-    const solvedCount = [...progress.solvedProjects.values()].filter(p => p.stars >= 2).length;
-
-    if (progress.doneLevels.length < 20) return res.status(400).json({ message: "Complete all 20 levels first" });
-    if (solvedCount < 5) return res.status(400).json({ message: "Solve at least 5 projects first" });
-    if (!progress.interview.passed) return res.status(400).json({ message: "Pass the interview first (75%+)" });
+    const blockers = certificateBlockers(progress);
+    if (blockers.length) return res.status(400).json({ message: blockers[0], blockers });
+    const solvedCount = solvedProjectCount(progress);
+    // The certificate shows the student's email, so it must be a verified one.
+    if (!req.user.emailVerified) {
+      return res.status(403).json({ message: "Verify your email address before claiming the certificate", code: "EMAIL_NOT_VERIFIED" });
+    }
 
     let cert = await Certificate.findOne({ userId: req.user._id, language: req.params.language });
     if (!cert) {
@@ -31,10 +35,14 @@ router.post("/:language/issue", protect, async (req, res) => {
   }
 });
 
-router.get("/:language", protect, async (req, res) => {
-  const cert = await Certificate.findOne({ userId: req.user._id, language: req.params.language });
-  if (!cert) return res.status(404).json({ message: "No certificate yet" });
-  res.json(cert);
+router.get("/:language", protect, validateLanguage, async (req, res) => {
+  try {
+    const cert = await Certificate.findOne({ userId: req.user._id, language: req.params.language });
+    if (!cert) return res.status(404).json({ message: "No certificate yet" });
+    res.json(cert);
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
 });
 
 // Public verification route for QR code scans

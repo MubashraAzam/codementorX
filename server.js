@@ -7,7 +7,6 @@ const dotenv = require("dotenv");
 const connectDB = require("./config/db");
 
 dotenv.config();
-console.log("MONGO_URI =", process.env.MONGO_URI);
 connectDB();
 
 const app = express();
@@ -35,12 +34,20 @@ app.use(
   })
 )
 app.use(express.json({ limit: "2mb" }));
+// Express 5 leaves req.body undefined when no JSON body is sent; default it so
+// routes can destructure safely.
+app.use((req, res, next) => {
+  if (req.body === undefined) req.body = {};
+  next();
+});
 
 app.use("/api/auth",        require("./routes/auth"));
 app.use("/api/progress",    require("./routes/progress"));
 app.use("/api/ai",          require("./routes/ai"));
 app.use("/api/certificate", require("./routes/certificate"));
 app.use("/api/interview",   require("./routes/interview"));
+app.use("/api/assessment",  require("./routes/assessment"));
+app.use("/api/courses",     require("./routes/courses"));
 
 app.get("/", (req, res) => res.json({ message: "CodeMentor X API running ✅" }));
 

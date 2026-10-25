@@ -2,10 +2,15 @@ const express = require("express");
 const Progress = require("../models/Progress");
 const Certificate = require("../models/Certificate");
 const { protect } = require("../middleware/authMiddleware");
+const { validateLanguage } = require("../middleware/validateLanguage");
 
 const router = express.Router();
 
-router.get("/:language", protect, async (req, res) => {
+// Progress is read-only from the client's point of view. Levels are recorded by
+// /api/assessment when a quiz is graded, projects by /api/ai/review-project,
+// and the viva by the Dograh webhook — never by values the browser sends.
+
+router.get("/:language", protect, validateLanguage, async (req, res) => {
   try {
     let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
     if (!progress) progress = await Progress.create({ userId: req.user._id, language: req.params.language });
@@ -23,58 +28,7 @@ router.get("/:language", protect, async (req, res) => {
   }
 });
 
-router.put("/:language/level", protect, async (req, res) => {
-  const { levelIndex, stars } = req.body;
-  try {
-    let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
-    if (!progress) progress = new Progress({ userId: req.user._id, language: req.params.language });
-
-    if (!progress.doneLevels.includes(levelIndex)) progress.doneLevels.push(levelIndex);
-    const prevStars = progress.stars.get(String(levelIndex)) || 0;
-    if (stars > prevStars) {
-      progress.stars.set(String(levelIndex), stars);
-    }
-    progress.currentLevel = Math.min(Math.max(progress.currentLevel, levelIndex + 1), 19);
-    progress.updatedAt = Date.now();
-    await progress.save();
-
-    res.json({ doneLevels: progress.doneLevels, stars: Object.fromEntries(progress.stars), currentLevel: progress.currentLevel });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-router.put("/:language/project", protect, async (req, res) => {
-  const { projectId, stars, feedback, fileName } = req.body;
-  try {
-    let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
-    if (!progress) progress = new Progress({ userId: req.user._id, language: req.params.language });
-
-    progress.solvedProjects.set(String(projectId), { stars, feedback, fileName });
-    await progress.save();
-
-    res.json({ solvedProjects: Object.fromEntries(progress.solvedProjects) });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-router.put("/:language/interview", protect, async (req, res) => {
-  const { percentage, feedback } = req.body;
-  try {
-    let progress = await Progress.findOne({ userId: req.user._id, language: req.params.language });
-    if (!progress) progress = new Progress({ userId: req.user._id, language: req.params.language });
-
-    progress.interview = { percentage, feedback, passed: percentage >= 75 };
-    await progress.save();
-
-    res.json({ interview: progress.interview });
-  } catch (error) {
-    res.status(500).json({ message: "Server error", error: error.message });
-  }
-});
-
-router.delete("/:language", protect, async (req, res) => {
+router.delete("/:language", protect, validateLanguage, async (req, res) => {
   try {
     await Progress.findOneAndDelete({ userId: req.user._id, language: req.params.language });
     res.json({ message: "Progress reset successfully" });
