@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const { LANGUAGES } = require("../data/curriculum");
 
 const progressSchema = new mongoose.Schema({
   userId:         { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  language:       { type: String, enum: ["python", "cpp"], required: true },
+  language:       { type: String, enum: LANGUAGES, required: true },
   doneLevels:     { type: [Number], default: [] },
   stars:          { type: Map, of: Number, default: {} },
   currentLevel:   { type: Number, default: 0 },
@@ -16,6 +17,9 @@ const progressSchema = new mongoose.Schema({
     feedback:   { type: String, default: "" },
     passed:     { type: Boolean, default: false },
   },
+  // Module 2.2 — latest assessment report per level ("0".."19"), used for the
+  // topic-wise performance report and, later, weak-topic detection (Module 9).
+  levelReports: { type: Map, of: Object, default: {} },
   updatedAt: { type: Date, default: Date.now },
 });
 

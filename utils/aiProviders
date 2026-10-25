@@ -4,11 +4,14 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-async function askGroq(prompt) {
+// options.maxTokens — longer outputs (10-question assessments, roadmaps).
+// options.json     — ask Groq for a JSON object response (prompt must mention JSON).
+async function askGroq(prompt, options = {}) {
   const completion = await groq.chat.completions.create({
     model: "llama-3.3-70b-versatile",
     messages: [{ role: "user", content: prompt }],
-    max_tokens: 1200,
+    max_tokens: options.maxTokens || 1200,
+    ...(options.json ? { response_format: { type: "json_object" } } : {}),
   });
   return completion.choices[0].message.content;
 }

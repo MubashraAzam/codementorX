@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const { LANGUAGES } = require("../data/curriculum");
 
 const enrollmentSchema = new mongoose.Schema(
   {
-    language:   { type: String, enum: ["python", "cpp"], required: true },
+    language:   { type: String, enum: LANGUAGES, required: true },
     enrolledAt: { type: Date, default: Date.now },
   },
   { _id: false }
@@ -20,7 +21,7 @@ const userSchema = new mongoose.Schema({
 
   // Module 1.3 — multi-course enrollment. `language` is the course currently
   // open on the dashboard; `enrollments` is every course the user has joined.
-  language:    { type: String, enum: ["python", "cpp", null], default: null },
+  language:    { type: String, enum: [...LANGUAGES, null], default: null },
   enrollments: { type: [enrollmentSchema], default: [] },
 
   // Module 11 groundwork — admins get access to the admin panel routes.

@@ -1,8 +1,9 @@
 const mongoose = require("mongoose");
+const { LANGUAGES } = require("../data/curriculum");
 
 const certificateSchema = new mongoose.Schema({
   userId:            { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  language:          { type: String, enum: ["python", "cpp"], required: true },
+  language:          { type: String, enum: LANGUAGES, required: true },
   projectsSolved:    { type: Number, required: true },
   interviewScore:    { type: Number, required: true },
   issuedAt:          { type: Date, default: Date.now },

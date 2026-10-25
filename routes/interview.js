@@ -18,7 +18,9 @@ router.get("/start/:language", protect, validateLanguage, requireEnrollment(), a
   try {
     const language = req.params.language; // 'python' or 'cpp'
     const userName = req.user.firstName || req.user.username || "Student";
-    const agentId = language === "python" ? process.env.DOGRAH_PYTHON_AGENT_ID : process.env.DOGRAH_CPP_AGENT_ID;
+    // One Dograh agent per track: DOGRAH_PYTHON_AGENT_ID, DOGRAH_CPP_AGENT_ID,
+    // DOGRAH_JAVA_AGENT_ID, DOGRAH_JAVASCRIPT_AGENT_ID, DOGRAH_REACT_AGENT_ID.
+    const agentId = process.env[`DOGRAH_${language.toUpperCase()}_AGENT_ID`] || null;
 
     const progress = await Progress.findOne({ userId: req.user._id, language });
     if (progress?.interview?.passed) {

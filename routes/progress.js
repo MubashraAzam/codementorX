@@ -21,6 +21,7 @@ router.get("/:language", protect, validateLanguage, async (req, res) => {
       currentLevel: progress.currentLevel,
       solvedProjects: Object.fromEntries(progress.solvedProjects),
       interview: progress.interview,
+      levelReports: Object.fromEntries(progress.levelReports || []),
       certificate: cert || null,
     });
   } catch (error) {
