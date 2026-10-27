@@ -50,6 +50,7 @@ app.use("/api/assessment",  require("./routes/assessment"));
 app.use("/api/courses",     require("./routes/courses"));
 app.use("/api/curriculum",  require("./routes/curriculum"));
 app.use("/api/roadmaps",    require("./routes/roadmaps"));
+app.use("/api/mentor",      require("./routes/mentor"));
 
 app.get("/", (req, res) => res.json({ message: "CodeMentor X API running ✅" }));
 

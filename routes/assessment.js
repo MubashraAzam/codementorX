@@ -3,7 +3,7 @@ const crypto = require("crypto");
 const mongoose = require("mongoose");
 const { protect, requireEnrollment } = require("../middleware/authMiddleware");
 const { validateLanguage } = require("../middleware/validateLanguage");
-const { askGroq } = require("../utils/aiProviders");
+const { askAI } = require("../utils/aiProviders");
 const { parseAIJson } = require("../utils/aiJson");
 const { LEVELS, LANG_LABEL, TOTAL_LEVELS } = require("../data/curriculum");
 const { isLevelUnlocked, starsForScore } = require("../utils/progressRules");
@@ -73,7 +73,7 @@ Return a JSON object only, in this shape:
   let best = [];
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
-      const parsed = parseAIJson(await askGroq(prompt, { maxTokens: 4000, json: true }));
+      const parsed = parseAIJson(await askAI(prompt, { maxTokens: 4000, json: true }));
       const list = Array.isArray(parsed) ? parsed : parsed?.questions;
       const valid = Array.isArray(list) ? list.filter(isValidQuestion) : [];
       if (valid.length > best.length) best = valid;

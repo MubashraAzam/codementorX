@@ -2,7 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const Roadmap = require("../models/Roadmap");
 const { protect } = require("../middleware/authMiddleware");
-const { askGroq } = require("../utils/aiProviders");
+const { askAI } = require("../utils/aiProviders");
 const { parseAIJson } = require("../utils/aiJson");
 const { LANGUAGES, LANG_LABEL } = require("../data/curriculum");
 
@@ -91,7 +91,7 @@ Return a JSON object only, in this shape:
     let cleaned = null;
     for (let attempt = 0; attempt < 2 && !cleaned; attempt++) {
       try {
-        cleaned = cleanRoadmap(parseAIJson(await askGroq(prompt, { maxTokens: 4000, json: true })), topic);
+        cleaned = cleanRoadmap(parseAIJson(await askAI(prompt, { maxTokens: 4000, json: true })), topic);
       } catch (err) {
         console.warn("Roadmap generation attempt failed:", err.message);
       }
