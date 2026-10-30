@@ -215,6 +215,10 @@ const RULES = {
   projectPassStars: 2,
   interviewPassPercent: 75,
   maxProjectCodeChars: 60000,
+  // Module 4.4 — similarity to another student's submission (0-1).
+  plagiarismFlag: Number(process.env.PLAGIARISM_THRESHOLD) || 0.85, // not counted, sent for review
+  plagiarismWarn: 0.6,                                               // warning only
+  plagiarismMinFingerprints: 8,                                      // tiny programs are never flagged
 };
 
 function isLanguage(lang) {

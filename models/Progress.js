@@ -9,7 +9,12 @@ const progressSchema = new mongoose.Schema({
   currentLevel:   { type: Number, default: 0 },
   solvedProjects: {
     type: Map,
-    of: new mongoose.Schema({ stars: Number, feedback: String, fileName: String }, { _id: false }),
+    of: new mongoose.Schema({
+      stars: Number, feedback: String, fileName: String,
+      rubric: { type: Object, default: null },
+      similarity: { type: Number, default: 0 },
+      flagged: { type: Boolean, default: false }, // Module 4.4: too similar to another student's code
+    }, { _id: false }),
     default: {},
   },
   interview: {

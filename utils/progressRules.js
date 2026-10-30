@@ -12,7 +12,8 @@ function solvedProjectCount(progress) {
   const projects = progress?.solvedProjects;
   if (!projects) return 0;
   const values = typeof projects.values === "function" ? [...projects.values()] : Object.values(projects);
-  return values.filter((p) => (p?.stars || 0) >= RULES.projectPassStars).length;
+  // Flagged (possibly copied) submissions do not count until an admin clears them.
+  return values.filter((p) => (p?.stars || 0) >= RULES.projectPassStars && !p?.flagged).length;
 }
 
 function completedLevelCount(progress) {
